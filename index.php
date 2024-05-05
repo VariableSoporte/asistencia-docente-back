@@ -11,6 +11,26 @@ require 'config.php';
 
 $pdo = new PDO("mysql:host=$host;dbname=$bd",$usuario,$contrasenia);
 
+Flight::before('start', function(){
+    header('Access-Control-Allow-Origin: *');
+    header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
+    header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Request-With');
+});
+
+
+Flight::route('OPTIONS /*', function(){
+    // Establecer los encabezados CORS para permitir las solicitudes desde cualquier origen
+    header('Access-Control-Allow-Origin: *');
+    header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
+    header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
+    // Responder con un estado HTTP 200 OK
+    http_response_code(200);
+    // Terminar la solicitud sin enviar contenido
+    exit();
+});
+
+    
+
 // http:localhost/asistencia-docente-back/
 Flight::route('/', function () {
     echo 'Hola Mundo!';
@@ -36,7 +56,7 @@ Flight::route('POST /login', function () {
         $correo = Flight::request()->data->correo;
         $contrasenia = Flight::request()->data->contrasenia;
 
-        $consulta = $pdo -> prepare("SELECT * FROM usuarios WHERE correo = :correo AND contrasenia = :contrasenia");
+        $consulta = $pdo -> prepare("SELECT * FROM usuario WHERE correo = :correo AND contrasenia = :contrasenia");
         $consulta->bindParam(':correo',$correo);
         $consulta->bindParam(':contrasenia',$contrasenia);
         $consulta -> execute();
@@ -47,6 +67,10 @@ Flight::route('POST /login', function () {
     }
 });
 
+Flight::route('GET /hora-servidor', function(){
+    $horaServidor = date("H:i:s");
+    Flight::json(['hora'=> $horaServidor]);
+});
 
 
 Flight::start();
